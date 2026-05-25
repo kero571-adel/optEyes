@@ -27,15 +27,14 @@ export interface Order {
   date: string;
   items: CartItem[];
   total: number;
-  status: 'Processing' | 'Shipped' | 'Delivered';
+  status: string;
   customer: {
     name: string;
-    email: string;
     phone: string;
-    address: string;
+    email?: string;
+    governorate: string;
     city: string;
-    state: string;
-    zip: string;
+    address: string;
   };
 }
 
