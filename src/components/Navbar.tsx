@@ -14,7 +14,6 @@ export default function Navbar() {
     { to: "/shop", label: "Shop" },
     { to: "/orders", label: "Orders" },
     { to: "/about", label: "About" },
-    { to: "/wishlist", label: "wishlist" },
     { to: "/contact", label: "Contact" },
   ];
 
@@ -55,10 +54,10 @@ export default function Navbar() {
           </div>
 
           {/* Right Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <Link
               to="/wishlist"
-              className="relative p-2 text-gray-500 hover:text-teal transition-colors hidden sm:block"
+              className="relative p-1 text-gray-500 hover:text-teal transition-colors"
             >
               <Heart size={20} />
               {wishlist.length > 0 && (
@@ -69,7 +68,7 @@ export default function Navbar() {
             </Link>
             <Link
               to="/orders"
-              className="relative p-2 text-gray-500 hover:text-teal transition-colors hidden sm:block"
+              className="relative p-1 text-gray-500 hover:text-teal transition-colors md:hidden sm:block"
             >
               <Package size={20} />
             </Link>
@@ -86,7 +85,7 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-gray-500 hover:text-teal transition-colors"
+              className="lg:hidden p-1 text-gray-500 hover:text-teal transition-colors"
             >
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
