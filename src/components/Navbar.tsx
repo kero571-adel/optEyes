@@ -14,6 +14,7 @@ export default function Navbar() {
     { to: "/shop", label: "Shop" },
     { to: "/orders", label: "Orders" },
     { to: "/about", label: "About" },
+    { to: "/wishlist", label: "wishlist" },
     { to: "/contact", label: "Contact" },
   ];
 
@@ -55,7 +56,7 @@ export default function Navbar() {
 
           {/* Right Icons */}
           <div className="flex items-center gap-3">
-            {/* <Link
+            <Link
               to="/wishlist"
               className="relative p-2 text-gray-500 hover:text-teal transition-colors hidden sm:block"
             >
@@ -65,7 +66,7 @@ export default function Navbar() {
                   {wishlist.length}
                 </span>
               )}
-            </Link> */}
+            </Link>
             <Link
               to="/orders"
               className="relative p-2 text-gray-500 hover:text-teal transition-colors hidden sm:block"

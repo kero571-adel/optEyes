@@ -197,6 +197,48 @@ const lensPrice: Record<string, number> = {
   "Blue Light": 30,
 };
 
+// ─── Field component — خارج Checkout لمنع إعادة الـ mount عند كل re-render ───
+const inputCls = (name: string, errors: Record<string, string>) =>
+  `w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 ${
+    errors[name]
+      ? "border-red-300 focus:ring-red-100 focus:border-red-400"
+      : "border-gray-200 focus:ring-teal/20 focus:border-teal"
+  }`;
+
+const Field = ({
+  label,
+  name,
+  required = true,
+  optional = false,
+  errors = {},
+  children,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  optional?: boolean;
+  errors?: Record<string, string>;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+      {label}
+      {optional && (
+        <span className="text-xs text-gray-400 font-normal">(optional)</span>
+      )}
+      {required && !optional && <span className="text-teal text-xs">*</span>}
+    </label>
+    {children}
+    {errors[name] && (
+      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+        <span>⚠</span> {errors[name]}
+      </p>
+    )}
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function Checkout() {
   const { cart, getCartTotal, placeOrder } = useApp();
   const navigate = useNavigate();
@@ -245,7 +287,6 @@ export default function Checkout() {
     >
   ) => {
     const { name, value } = e.target;
-    // reset city when governorate changes
     if (name === "governorate") {
       setForm((f) => ({ ...f, governorate: value, city: "" }));
     } else {
@@ -279,44 +320,6 @@ export default function Checkout() {
     }, 1500);
   };
 
-  // ── helpers ──────────────────────────────────────────────────────────────────
-  const Field = ({
-    label,
-    name,
-    required = true,
-    optional = false,
-    children,
-  }: {
-    label: string;
-    name: string;
-    required?: boolean;
-    optional?: boolean;
-    children: React.ReactNode;
-  }) => (
-    <div>
-      <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-        {label}
-        {optional && (
-          <span className="text-xs text-gray-400 font-normal">(optional)</span>
-        )}
-        {required && !optional && <span className="text-teal text-xs">*</span>}
-      </label>
-      {children}
-      {errors[name] && (
-        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-          <span>⚠</span> {errors[name]}
-        </p>
-      )}
-    </div>
-  );
-
-  const inputCls = (name: string) =>
-    `w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 ${
-      errors[name]
-        ? "border-red-300 focus:ring-red-100 focus:border-red-400"
-        : "border-gray-200 focus:ring-teal/20 focus:border-teal"
-    }`;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -343,23 +346,23 @@ export default function Checkout() {
                   Contact Information
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Full Name" name="name">
+                  <Field label="Full Name" name="name" errors={errors}>
                     <input
                       name="name"
                       value={form.name}
                       onChange={handleChange}
                       placeholder="Ahmed Mohamed"
-                      className={inputCls("name")}
+                      className={inputCls("name", errors)}
                     />
                   </Field>
-                  <Field label="Phone Number" name="phone">
+                  <Field label="Phone Number" name="phone" errors={errors}>
                     <input
                       name="phone"
                       value={form.phone}
                       onChange={handleChange}
                       type="tel"
                       placeholder="01xxxxxxxxx"
-                      className={inputCls("phone")}
+                      className={inputCls("phone", errors)}
                     />
                   </Field>
                   <div className="sm:col-span-2">
@@ -368,6 +371,7 @@ export default function Checkout() {
                       name="email"
                       optional
                       required={false}
+                      errors={errors}
                     >
                       <input
                         name="email"
@@ -375,7 +379,7 @@ export default function Checkout() {
                         onChange={handleChange}
                         type="email"
                         placeholder="ahmed@example.com"
-                        className={inputCls("email")}
+                        className={inputCls("email", errors)}
                       />
                     </Field>
                   </div>
@@ -391,14 +395,13 @@ export default function Checkout() {
                   Shipping Address
                 </h2>
                 <div className="space-y-4">
-                  {/* Governorate */}
-                  <Field label="Governorate" name="governorate">
+                  <Field label="Governorate" name="governorate" errors={errors}>
                     <select
                       name="governorate"
                       value={form.governorate}
                       onChange={handleChange}
                       className={
-                        inputCls("governorate") + " bg-white cursor-pointer"
+                        inputCls("governorate", errors) + " bg-white cursor-pointer"
                       }
                     >
                       <option value="">Select governorate…</option>
@@ -412,7 +415,6 @@ export default function Checkout() {
                     </select>
                   </Field>
 
-                  {/* Shipping badge — appears after governorate selection */}
                   {selectedGov && (
                     <div className="flex flex-wrap gap-3">
                       <div className="flex items-center gap-2 bg-teal/5 border border-teal/20 rounded-xl px-4 py-2.5">
@@ -438,15 +440,14 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  {/* City — only visible after governorate */}
                   {form.governorate && (
-                    <Field label="City / District" name="city">
+                    <Field label="City / District" name="city" errors={errors}>
                       <select
                         name="city"
                         value={form.city}
                         onChange={handleChange}
                         className={
-                          inputCls("city") + " bg-white cursor-pointer"
+                          inputCls("city", errors) + " bg-white cursor-pointer"
                         }
                       >
                         <option value="">Select city…</option>
@@ -459,15 +460,14 @@ export default function Checkout() {
                     </Field>
                   )}
 
-                  {/* Detailed address */}
-                  <Field label="Detailed Address" name="address">
+                  <Field label="Detailed Address" name="address" errors={errors}>
                     <textarea
                       name="address"
                       value={form.address}
                       onChange={handleChange}
                       placeholder="Street name, building number, floor, apartment…"
                       rows={3}
-                      className={inputCls("address") + " resize-none"}
+                      className={inputCls("address", errors) + " resize-none"}
                     />
                   </Field>
                 </div>
@@ -504,7 +504,6 @@ export default function Checkout() {
               <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-24 shadow-sm">
                 <h2 className="font-bold text-gray-900 mb-4">Order Summary</h2>
 
-                {/* items */}
                 <div className="space-y-3 mb-4">
                   {cart.map((item) => (
                     <div
@@ -538,7 +537,6 @@ export default function Checkout() {
                   ))}
                 </div>
 
-                {/* totals */}
                 <div className="space-y-2 text-sm border-t border-gray-100 pt-3">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>

@@ -1,6 +1,7 @@
 "use client";
 import { Link } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { ChevronDown } from "lucide-react";
 
 const MARQUEE_TEXT =
   "See better.  ·  Ray Precis.  ·  Comfort Vision.  ·  Clear vision care.  ·  ";
@@ -9,14 +10,14 @@ const FULL_TEXT = MARQUEE_TEXT.repeat(8);
 // ─── shared RAF offset so every strip moves identically ───────────────────────
 let rafId: number | null = null;
 let startTs: number | null = null;
-const SPEED = 0.0004; // % per ms  →  controls scroll speed
+const SPEED = 0.0004;
 const subscribers: Set<(offset: number) => void> = new Set();
 
 function startLoop() {
   if (rafId !== null) return;
   const tick = (ts: number) => {
     if (startTs === null) startTs = ts;
-    const offset = ((ts - startTs) * SPEED) % 50; // loop at 50% (2 copies)
+    const offset = ((ts - startTs) * SPEED) % 50;
     subscribers.forEach((fn) => fn(offset));
     rafId = requestAnimationFrame(tick);
   };
@@ -32,19 +33,12 @@ function stopLoop() {
 }
 
 // ─── single marquee strip ──────────────────────────────────────────────────────
-function MarqueeStrip({
-  color,
-  fontSize,
-}: {
-  color: string;
-  fontSize: string;
-}) {
+function MarqueeStrip({ color, fontSize }: { color: string; fontSize: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (offset: number) => {
-      if (ref.current)
-        ref.current.style.transform = `translateX(-${offset}%)`;
+      if (ref.current) ref.current.style.transform = `translateX(-${offset}%)`;
     };
     subscribers.add(handler);
     startLoop();
@@ -56,14 +50,9 @@ function MarqueeStrip({
 
   return (
     <div
-      style={{
-        display: "flex",
-        whiteSpace: "nowrap",
-        willChange: "transform",
-      }}
+      style={{ display: "flex", whiteSpace: "nowrap", willChange: "transform" }}
       ref={ref}
     >
-      {/* two identical copies so the loop is seamless */}
       {[0, 1].map((i) => (
         <span
           key={i}
@@ -89,14 +78,7 @@ function MarqueeStrip({
 // ─── main component ────────────────────────────────────────────────────────────
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lensDataRef = useRef<{
-    lx: number; ly: number;
-    rx: number; ry: number;
-    r: number;
-  } | null>(null);
-
-  // keep clip-path strings in sync with element size
-  const leftLayerRef  = useRef<HTMLDivElement>(null);
+  const leftLayerRef = useRef<HTMLDivElement>(null);
   const rightLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -106,25 +88,23 @@ export default function Hero() {
       if (!svg) return;
 
       const svgRect = svg.getBoundingClientRect();
-      const ctRect  = containerRef.current.getBoundingClientRect();
+      const ctRect = containerRef.current.getBoundingClientRect();
 
-      const scaleX = svgRect.width  / 800;
+      const scaleX = svgRect.width / 800;
       const scaleY = svgRect.height / 320;
-      const offX   = svgRect.left - ctRect.left;
-      const offY   = svgRect.top  - ctRect.top;
+      const offX = svgRect.left - ctRect.left;
+      const offY = svgRect.top - ctRect.top;
 
       const lx = offX + 270 * scaleX;
       const ly = offY + 160 * scaleY;
       const rx = offX + 530 * scaleX;
       const ry = offY + 160 * scaleY;
-      const r  = 110  * Math.min(scaleX, scaleY);
+      const r = 110 * Math.min(scaleX, scaleY);
 
-      lensDataRef.current = { lx, ly, rx, ry, r };
-
-      const leftClip  = `circle(${r}px at ${lx}px ${ly}px)`;
+      const leftClip = `circle(${r}px at ${lx}px ${ly}px)`;
       const rightClip = `circle(${r}px at ${rx}px ${ry}px)`;
 
-      if (leftLayerRef.current)  leftLayerRef.current.style.clipPath  = leftClip;
+      if (leftLayerRef.current) leftLayerRef.current.style.clipPath = leftClip;
       if (rightLayerRef.current) rightLayerRef.current.style.clipPath = rightClip;
     };
 
@@ -138,6 +118,18 @@ export default function Hero() {
       clearTimeout(t2);
     };
   }, []);
+
+  const handleScrollDown = () => {
+    const heroEl = document.querySelector("section");
+    if (heroEl) {
+      const nextSection = heroEl.nextElementSibling as HTMLElement | null;
+      if (nextSection) {
+        nextSection.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.scrollBy({ top: window.innerHeight, behavior: "smooth" });
+      }
+    }
+  };
 
   const fontSize = "clamp(3.5rem, 8vw, 6rem)";
 
@@ -166,15 +158,12 @@ export default function Hero() {
           className="relative w-full"
           style={{ aspectRatio: "2.5 / 1" }}
         >
-          {/* LAYER 1 – faded text (visible everywhere, hard to read) */}
+          {/* LAYER 1 – faded text */}
           <div
             className="absolute inset-0 flex items-center overflow-hidden"
             style={{ zIndex: 1 }}
           >
-            <MarqueeStrip
-              color="rgba(160,165,175,0.35)"
-              fontSize={fontSize}
-            />
+            <MarqueeStrip color="rgba(160,165,175,0.35)" fontSize={fontSize} />
           </div>
 
           {/* LAYER 2a – crisp text clipped to LEFT lens */}
@@ -183,10 +172,7 @@ export default function Hero() {
             className="absolute inset-0 flex items-center overflow-hidden"
             style={{ zIndex: 2, clipPath: "circle(0px at 0px 0px)" }}
           >
-            <MarqueeStrip
-              color="rgba(10,10,10,0.93)"
-              fontSize={fontSize}
-            />
+            <MarqueeStrip color="rgba(10,10,10,0.93)" fontSize={fontSize} />
           </div>
 
           {/* LAYER 2b – crisp text clipped to RIGHT lens */}
@@ -195,10 +181,7 @@ export default function Hero() {
             className="absolute inset-0 flex items-center overflow-hidden"
             style={{ zIndex: 2, clipPath: "circle(0px at 0px 0px)" }}
           >
-            <MarqueeStrip
-              color="rgba(10,10,10,0.93)"
-              fontSize={fontSize}
-            />
+            <MarqueeStrip color="rgba(10,10,10,0.93)" fontSize={fontSize} />
           </div>
 
           {/* LAYER 3 – SVG glasses frame */}
@@ -230,69 +213,35 @@ export default function Hero() {
               </filter>
             </defs>
 
-            {/* lens glass fills */}
             <circle cx="270" cy="160" r="110" fill="url(#lFill)" />
             <circle cx="530" cy="160" r="110" fill="url(#lFill)" />
 
-            {/* frame rings */}
             <g filter="url(#fShadow)">
-              <circle cx="270" cy="160" r="114" fill="none"
-                stroke="url(#fGrad)" strokeWidth="9" />
-              <circle cx="530" cy="160" r="114" fill="none"
-                stroke="url(#fGrad)" strokeWidth="9" />
+              <circle cx="270" cy="160" r="114" fill="none" stroke="url(#fGrad)" strokeWidth="9" />
+              <circle cx="530" cy="160" r="114" fill="none" stroke="url(#fGrad)" strokeWidth="9" />
             </g>
 
-            {/* inner ring */}
-            <circle cx="270" cy="160" r="109" fill="none"
-              stroke="#3DBDB4" strokeWidth="1" opacity="0.2" />
-            <circle cx="530" cy="160" r="109" fill="none"
-              stroke="#3DBDB4" strokeWidth="1" opacity="0.2" />
+            <circle cx="270" cy="160" r="109" fill="none" stroke="#3DBDB4" strokeWidth="1" opacity="0.2" />
+            <circle cx="530" cy="160" r="109" fill="none" stroke="#3DBDB4" strokeWidth="1" opacity="0.2" />
 
-            {/* outer glow ring */}
-            <circle cx="270" cy="160" r="119" fill="none"
-              stroke="#7EDDD6" strokeWidth="0.5" opacity="0.12" />
-            <circle cx="530" cy="160" r="119" fill="none"
-              stroke="#7EDDD6" strokeWidth="0.5" opacity="0.12" />
+            <circle cx="270" cy="160" r="119" fill="none" stroke="#7EDDD6" strokeWidth="0.5" opacity="0.12" />
+            <circle cx="530" cy="160" r="119" fill="none" stroke="#7EDDD6" strokeWidth="0.5" opacity="0.12" />
 
-            {/* highlight arcs */}
-            <path d="M 196 90 A 114 114 0 0 1 344 90"
-              fill="none" stroke="url(#fHigh)" strokeWidth="2.5"
-              strokeLinecap="round" />
-            <path d="M 456 90 A 114 114 0 0 1 604 90"
-              fill="none" stroke="url(#fHigh)" strokeWidth="2.5"
-              strokeLinecap="round" />
+            <path d="M 196 90 A 114 114 0 0 1 344 90" fill="none" stroke="url(#fHigh)" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M 456 90 A 114 114 0 0 1 604 90" fill="none" stroke="url(#fHigh)" strokeWidth="2.5" strokeLinecap="round" />
 
-            {/* bridge */}
-            <path d="M 388 138 Q 400 114 412 138"
-              fill="none" stroke="url(#fGrad)" strokeWidth="8"
-              strokeLinecap="round" />
-            <path d="M 390 136 Q 400 116 410 136"
-              fill="none" stroke="#8AEEE8" strokeWidth="1.5"
-              strokeLinecap="round" opacity="0.3" />
+            <path d="M 388 138 Q 400 114 412 138" fill="none" stroke="url(#fGrad)" strokeWidth="8" strokeLinecap="round" />
+            <path d="M 390 136 Q 400 116 410 136" fill="none" stroke="#8AEEE8" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
 
-            {/* nose pads */}
-            <ellipse cx="366" cy="178" rx="5" ry="8"
-              fill="#4ECDC4" opacity="0.3" />
-            <ellipse cx="434" cy="178" rx="5" ry="8"
-              fill="#4ECDC4" opacity="0.3" />
-            <line x1="369" y1="172" x2="390" y2="146"
-              stroke="#4ECDC4" strokeWidth="1.5" opacity="0.35"
-              strokeLinecap="round" />
-            <line x1="431" y1="172" x2="410" y2="146"
-              stroke="#4ECDC4" strokeWidth="1.5" opacity="0.35"
-              strokeLinecap="round" />
+            <ellipse cx="366" cy="178" rx="5" ry="8" fill="#4ECDC4" opacity="0.3" />
+            <ellipse cx="434" cy="178" rx="5" ry="8" fill="#4ECDC4" opacity="0.3" />
+            <line x1="369" y1="172" x2="390" y2="146" stroke="#4ECDC4" strokeWidth="1.5" opacity="0.35" strokeLinecap="round" />
+            <line x1="431" y1="172" x2="410" y2="146" stroke="#4ECDC4" strokeWidth="1.5" opacity="0.35" strokeLinecap="round" />
 
-            {/* temple arms */}
-            <line x1="156" y1="142" x2="90" y2="134"
-              stroke="url(#fGrad)" strokeWidth="5" strokeLinecap="round" />
-            <line x1="644" y1="142" x2="710" y2="134"
-              stroke="url(#fGrad)" strokeWidth="5" strokeLinecap="round" />
-            <line x1="156" y1="140" x2="96" y2="133"
-              stroke="#8AEEE8" strokeWidth="1" strokeLinecap="round"
-              opacity="0.25" />
-            <line x1="644" y1="140" x2="704" y2="133"
-              stroke="#8AEEE8" strokeWidth="1" strokeLinecap="round"
-              opacity="0.25" />
+            <line x1="156" y1="142" x2="90"  y2="134" stroke="url(#fGrad)" strokeWidth="5" strokeLinecap="round" />
+            <line x1="644" y1="142" x2="710" y2="134" stroke="url(#fGrad)" strokeWidth="5" strokeLinecap="round" />
+            <line x1="156" y1="140" x2="96"  y2="133" stroke="#8AEEE8" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
+            <line x1="644" y1="140" x2="704" y2="133" stroke="#8AEEE8" strokeWidth="1" strokeLinecap="round" opacity="0.25" />
           </svg>
         </div>
 
@@ -322,16 +271,77 @@ export default function Hero() {
             <Link
               to="/about"
               className="px-8 py-3.5 font-semibold rounded-full transition-all hover:-translate-y-0.5 duration-300"
-              style={{
-                border: "2px solid #4ECDC4",
-                color: "#4ECDC4",
-              }}
+              style={{ border: "2px solid #4ECDC4", color: "#4ECDC4" }}
             >
               Learn More
             </Link>
           </div>
         </div>
       </div>
+
+      {/* ── Scroll Down Button ── */}
+      <button 
+        onClick={handleScrollDown}
+        aria-label="Scroll down"
+        className="cursor-pointer absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 group"
+      >
+        {/* label */}
+        <span
+          className="text-xs font-medium tracking-widest uppercase opacity-40 group-hover:opacity-70 transition-opacity duration-300"
+          style={{ color: "#13e4d6cf", letterSpacing: "0.18em" }}
+        >
+          Scroll
+        </span>
+
+        {/* pill container */}
+        <div
+          className="relative flex items-start justify-center w-6 h-10 rounded-full border-2 transition-all duration-300 group-hover:scale-110"
+          style={{ borderColor: "rgba(78,205,196,0.45)" }}
+        >
+          {/* scrolling dot */}
+          <div
+            className="w-1.5 h-1.5 rounded-full mt-1.5"
+            style={{
+              background: "#13e4d6cf",
+              animation: "scrollDot 1.6s cubic-bezier(0.45,0,0.55,1) infinite",
+            }}
+          />
+        </div>
+
+        {/* chevrons */}
+        <div className="flex flex-col items-center -mt-0.5" style={{ gap: "1px" }}>
+          <ChevronDown
+            size={14}
+            style={{
+              color: "#13e4d6cf",
+              opacity: 0.7,
+              animation: "chevronFade 1.6s ease-in-out infinite",
+            }}
+          />
+          <ChevronDown
+            size={14}
+            style={{
+              color: "#13e4d6cf",
+              opacity: 0.4,
+              animation: "chevronFade 1.6s ease-in-out 0.2s infinite",
+            }}
+          />
+        </div>
+      </button>
+
+      {/* ── keyframes ── */}
+      <style>{`
+        @keyframes scrollDot {
+          0%   { transform: translateY(0);    opacity: 1;   }
+          80%  { transform: translateY(18px); opacity: 0;   }
+          81%  { transform: translateY(0);    opacity: 0;   }
+          100% { transform: translateY(0);    opacity: 1;   }
+        }
+        @keyframes chevronFade {
+          0%, 100% { opacity: 0.2; transform: translateY(-2px); }
+          50%       { opacity: 0.8; transform: translateY(2px);  }
+        }
+      `}</style>
     </section>
   );
 }
